@@ -211,6 +211,10 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 - **Backend validado en Docker**: ver actualización en Fase 2 — fix de GRANTs + **35/35 pgTAP PASS**.
 - **`.env` real configurado** con la URL y publishable key del proyecto Supabase del usuario (`xzcfhqhjbiqtgawypzif`); el archivo está gitignoreado.
 
+**Backend hosted desplegado (2026-07-02):**
+- `npx supabase login` (usuario) + `link` + `db push`: las **7 migraciones aplicadas** al proyecto `xzcfhqhjbiqtgawypzif` (verificado con `migration list`: local == remoto).
+- Migración de endurecimiento `20260702120000_lock_anon.sql`: revocado todo acceso de `anon` a tablas/funciones (EXECUTE explícito solo para `authenticated`); validada primero en local (35/35 pgTAP) y luego en hosted.
+- Smoke test contra el proyecto real: `GET /rest/v1/farms` como anónimo → **401 permission denied** ✔; antes del lock retornaba `[]` (RLS ya filtraba, ahora ni siquiera puede consultar).
+
 **Pendiente (requiere acción del usuario):**
-- `npx supabase login` (flujo de navegador, interactivo) + contraseña de BD del proyecto para `link` y `db push` de las migraciones al proyecto hosted.
-- Prueba en teléfono: Expo Go si su versión soporta SDK 56; si exige SDK 57, decidir entre upgrade de SDK o dev build EAS (cuenta expo.dev).
+- Prueba en teléfono con Expo Go SDK 56 (APK ya instalado, compatible): `npm start` + escanear QR; registrar cuenta, crear finca, vaca y ordeño; criterio de modo avión y reconexión.
