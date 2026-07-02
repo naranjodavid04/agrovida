@@ -9,7 +9,7 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 | 0 | Auditoría y plan | ✅ Completada (2026-07-01) |
 | 1 | Fundación (scaffold, tooling, tokens) | ✅ Completada (2026-07-01) |
 | 2 | Backend Supabase (migraciones, RLS) | 🟡 Escrita; ejecución bloqueada sin Docker (2026-07-01) |
-| 3 | Base de datos local (SQLite, repos, outbox) | ⬜ Pendiente |
+| 3 | Base de datos local (SQLite, repos, outbox) | ✅ Completada (2026-07-01) |
 | 4 | Autenticación y bootstrap de finca | ⬜ Pendiente |
 | 5 | Sincronización | ⬜ Pendiente |
 | 6 | UI del producto | ⬜ Pendiente |
@@ -82,7 +82,22 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 
 **Siguiente tarea:** Fase 3 — espejo SQLite local con outbox transaccional.
 
-## Fase 3 — Base de datos local (⬜ pendiente)
+## Fase 3 — Base de datos local (✅ 2026-07-01)
+
+**Implementado:**
+- Interfaz de driver síncrona (`src/db/driver.ts`, D-017) con transacciones anidadas por savepoints (BEGIN IMMEDIATE en nivel 0); implementación expo-sqlite (`src/db/expo-driver.ts` + `src/db/database.ts` con WAL y foreign_keys) y better-sqlite3 para Jest (`tests/helpers/testDb.ts`).
+- Runner de migraciones locales con `PRAGMA user_version`, cada migración atómica (`src/db/migrations.ts`, `src/db/schema.ts` v1: espejos de dominio + `sync_queue`, `sync_state`, `photo_upload_queue`, `sync_conflicts`, `app_state`; índices únicos parciales que replican chapeta y sesión de leche).
+- Outbox transaccional (`src/sync/outbox.ts`): encolar en la misma transacción, listado determinista por id, ack por borrado, fallo con `attempt_count`/`next_attempt_at`.
+- Repositorios (`src/repositories/`): `cows` (crear/editar/lifecycle/soft-delete/madre-hijas/búsqueda, payloads con forma remota), `milk` (upsert por sesión que edita in situ, historial, y derivados: total del día, delta vs ayer con null sin comparación, tendencia 7 días con ceros, totales de finca), `farms` (caché remoto), `appState`, `conflicts` (D-016), `photoQueue` (D-010). La UI nunca emite SQL.
+- Utilidades: `ids` (UUID inyectable), `clock` (inyectable), `dates` (edad derivada D-006, fechas locales), `validation` (litros 0–60 finitos, nombre, fecha futura, partos, chapeta).
+
+**Comandos ejecutados y resultados:**
+- `npx jest` ✔ **8 suites, 42 tests**: migraciones (idempotencia, rollback atómico, savepoints anidados), vacas (chapeta duplicada sin escrituras parciales, genealogía, estados independientes D-005, tombstone), leche (unicidad de sesión editando in situ, derivados con casos borde, exclusión de soft-deleted), outbox (orden, backoff, rollback conjunto con la escritura de dominio).
+- `npx tsc --noEmit` ✔ · `npx eslint .` ✔ · `npx prettier --check .` ✔
+
+**Riesgos:** el driver expo-sqlite solo se ejercita en dispositivo (misma SQL que better-sqlite3; riesgo bajo, se valida en Fase 7 con export).
+
+**Siguiente tarea:** Fase 4 — autenticación y bootstrap de finca.
 
 ## Fase 4 — Autenticación y bootstrap (⬜ pendiente)
 

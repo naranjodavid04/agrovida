@@ -43,6 +43,10 @@ function serialize(context: unknown): string {
 const MAX_BUFFERED_ENTRIES = 200;
 const buffer: LogEntry[] = [];
 
+/** __DEV__ exists in React Native; Node test runs fall back to false. */
+declare const __DEV__: boolean | undefined;
+const isDevBuild = typeof __DEV__ !== 'undefined' && __DEV__ === true;
+
 function log(level: LogLevel, scope: string, message: string, context?: unknown): void {
   const text = `${redactValue(message)}${serialize(context)}`;
   const entry: LogEntry = {
@@ -53,7 +57,7 @@ function log(level: LogLevel, scope: string, message: string, context?: unknown)
   };
   buffer.push(entry);
   if (buffer.length > MAX_BUFFERED_ENTRIES) buffer.shift();
-  if (__DEV__ || level === 'warn' || level === 'error') {
+  if (isDevBuild || level === 'warn' || level === 'error') {
     const line = `[${scope}] ${text}`;
     if (level === 'error') console.error(line);
     else if (level === 'warn') console.warn(line);
