@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "AgroVida",
+    "slug": "agrovida",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "agrovida",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.agrovida.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#16794F",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#16794F",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 76
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "AgroVida usa tus fotos para asociar imágenes a los animales del hato.",
+          "cameraPermission": "AgroVida usa la cámara para tomar fotos de los animales del hato."
+        }
+      ],
+      "expo-sqlite"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

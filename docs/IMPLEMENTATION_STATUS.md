@@ -7,7 +7,7 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 | Fase | Descripción | Estado |
 |------|-------------|--------|
 | 0 | Auditoría y plan | ✅ Completada (2026-07-01) |
-| 1 | Fundación (scaffold, tooling, tokens) | ⬜ Pendiente |
+| 1 | Fundación (scaffold, tooling, tokens) | ✅ Completada (2026-07-01) |
 | 2 | Backend Supabase (migraciones, RLS) | ⬜ Pendiente |
 | 3 | Base de datos local (SQLite, repos, outbox) | ⬜ Pendiente |
 | 4 | Autenticación y bootstrap de finca | ⬜ Pendiente |
@@ -45,7 +45,25 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 
 **Siguiente tarea:** Fase 1 — scaffold Expo SDK 56 con Expo Router y TypeScript estricto.
 
-## Fase 1 — Fundación (⬜ pendiente)
+## Fase 1 — Fundación (✅ 2026-07-01)
+
+**Implementado:**
+- Scaffold Expo SDK 56 (`create-expo-app --template default@sdk-56`, generado en carpeta temporal y fusionado; sin demos de la plantilla).
+- `package.json` con scripts `typecheck/lint/format/test/doctor`; dependencias SDK 56 vía `npx expo install`: `expo-sqlite`, `@react-native-community/netinfo`, `react-native-svg`, `expo-image-picker`, `expo-file-system`, `expo-crypto`, `expo-haptics`, fuentes Manrope y Space Grotesk empaquetadas. `@supabase/supabase-js`, `zod`, `react-native-url-polyfill`.
+- TypeScript estricto + `noUncheckedIndexedAccess`; regla ESLint `no-explicit-any: error`.
+- Jest en dos proyectos: `domain` (Node + babel-preset-expo, para db/sync/lib) y `ui` (jest-expo). `transformIgnorePatterns` ajustado porque babel-preset-expo reescribe `process.env` al módulo ESM `expo/virtual/env`.
+- `src/lib/theme/tokens.ts` (tokens completos de DESIGN_SPEC), `src/lib/i18n/strings.ts` (copy es-CO centralizado), `src/lib/env.ts` (validación zod + `.env.example`), `src/lib/logger.ts` (buffer de diagnóstico con redacción de secretos), `src/lib/constants.ts` (`MAX_LITERS_PER_SESSION = 60`), `src/types/domain.ts`.
+- `src/app/_layout.tsx` (fuentes, splash, GestureHandlerRootView) y `src/app/index.tsx` (placeholder de bootstrap; se reemplaza en Fase 4).
+
+**Comandos ejecutados y resultados:**
+- `npm install` + `npx expo install …` ✔ (sin errores EPERM de OneDrive en esta corrida)
+- `npx tsc --noEmit` ✔ · `npx eslint .` ✔ · `npx prettier --check .` ✔
+- `npx jest` ✔ 2 suites, 5 tests (logger redaction, env validation)
+- `npx expo-doctor` ✔ 21/21 checks (tras alinear jest 29.7, @types/jest 29.5, babel-preset-expo 56, eslint-config-expo 56)
+
+**Riesgos:** ninguno nuevo; los assets de ícono/splash son placeholders de Expo (pendiente identidad visual).
+
+**Siguiente tarea:** Fase 2 — migraciones Supabase con RLS y RPC `pull_changes`.
 
 ## Fase 2 — Backend Supabase (⬜ pendiente)
 
