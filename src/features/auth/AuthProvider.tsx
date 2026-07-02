@@ -152,27 +152,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [refreshFromLocal, remoteConfigured]);
 
+  // Once authentication succeeded the user is signed in even if the farm
+  // cache refresh fails (flaky network): proceed with the local cache and
+  // let refreshBootstrap/sync retry later.
+  const bootstrapBestEffort = useCallback(async (user: AuthUser) => {
+    try {
+      await bootstrapFromRemote(getDatabase(), getSupabase(), user);
+    } catch (error) {
+      log.warn('bootstrap after sign-in failed; continuing with local cache', {
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }, []);
+
   const signIn = useCallback(
     async (email: string, password: string) => {
-      const client = getSupabase();
-      const user = await signInWithPassword(client, email, password);
-      await bootstrapFromRemote(getDatabase(), client, user);
+      const user = await signInWithPassword(getSupabase(), email, password);
+      await bootstrapBestEffort(user);
       refreshFromLocal(user, false);
     },
-    [refreshFromLocal],
+    [bootstrapBestEffort, refreshFromLocal],
   );
 
   const signUp = useCallback(
     async (email: string, password: string) => {
-      const client = getSupabase();
-      const result = await signUpWithPassword(client, email, password);
+      const result = await signUpWithPassword(getSupabase(), email, password);
       if (result.kind === 'signed_in') {
-        await bootstrapFromRemote(getDatabase(), client, result.user);
+        await bootstrapBestEffort(result.user);
         refreshFromLocal(result.user, false);
       }
       return result;
     },
-    [refreshFromLocal],
+    [bootstrapBestEffort, refreshFromLocal],
   );
 
   const signOut = useCallback(async (options?: { force?: boolean }) => {

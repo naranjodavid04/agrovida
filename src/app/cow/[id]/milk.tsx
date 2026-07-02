@@ -14,6 +14,7 @@ import { getDatabase } from '@/db/database';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { domainErrorMessage } from '@/features/herd/errorMessages';
 import { useLocalQuery } from '@/features/herd/useLocalQuery';
+import { useSync } from '@/features/sync/SyncProvider';
 import { toIsoDate, todayIsoDate } from '@/lib/dates';
 import { strings } from '@/lib/i18n/strings';
 import { getCow } from '@/repositories/cows';
@@ -31,6 +32,7 @@ export default function MilkFormScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { activeFarmId, user } = useAuth();
+  const { notifyLocalChange } = useSync();
 
   const [date, setDate] = useState(todayIsoDate());
   const [session, setSession] = useState<MilkSession>('morning');
@@ -62,6 +64,7 @@ export default function MilkFormScreen() {
       setSavedNotice(true);
       setLiters('');
       reload();
+      notifyLocalChange();
       setTimeout(() => setSavedNotice(false), 2500);
     } catch (err) {
       // Input is preserved on failure (PRODUCT_SPEC §7).

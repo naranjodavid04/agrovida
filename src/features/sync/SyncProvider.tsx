@@ -18,6 +18,8 @@ import { createSupabaseRemote } from '@/sync/remote';
 interface SyncContextValue {
   snapshot: SyncSnapshot;
   retryNow: () => void;
+  /** Call after a local write so the push starts immediately when online. */
+  notifyLocalChange: () => void;
 }
 
 const idleSnapshot: SyncSnapshot = {
@@ -31,6 +33,7 @@ const idleSnapshot: SyncSnapshot = {
 const SyncContext = createContext<SyncContextValue>({
   snapshot: idleSnapshot,
   retryNow: () => undefined,
+  notifyLocalChange: () => undefined,
 });
 
 /** Retry cadence while there is pending work or a transient error. */
@@ -123,6 +126,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     () => ({
       snapshot,
       retryNow: () => void coordinator?.requestSync('manual-retry'),
+      notifyLocalChange: () => void coordinator?.requestSync('local-write'),
     }),
     [snapshot, coordinator],
   );

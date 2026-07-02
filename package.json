@@ -11,7 +11,10 @@
     "lint": "eslint .",
     "format": "prettier --check .",
     "test": "jest",
-    "doctor": "expo-doctor"
+    "doctor": "expo-doctor",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
+    "db:push": "supabase db push"
   },
   "dependencies": {
     "@expo-google-fonts/manrope": "^0.4.2",

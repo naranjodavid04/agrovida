@@ -26,6 +26,7 @@ import { SegmentedControl } from '@/components/SegmentedControl';
 import { TextField } from '@/components/TextField';
 import { getDatabase } from '@/db/database';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { useSync } from '@/features/sync/SyncProvider';
 import { isValidIsoDate, toIsoDate } from '@/lib/dates';
 import { strings } from '@/lib/i18n/strings';
 import { listCows } from '@/repositories/cows';
@@ -51,6 +52,7 @@ interface Props {
 export function CowForm({ existing }: Props) {
   const router = useRouter();
   const { activeFarmId, user } = useAuth();
+  const { notifyLocalChange } = useSync();
 
   const [name, setName] = useState(existing?.name ?? '');
   const [tag, setTag] = useState(existing?.tagNumber ?? '');
@@ -128,6 +130,7 @@ export function CowForm({ existing }: Props) {
           newPhotoUri,
         );
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        notifyLocalChange();
         router.back();
         return;
       }
@@ -149,6 +152,7 @@ export function CowForm({ existing }: Props) {
         newPhotoUri,
       );
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      notifyLocalChange();
       // Immediate local confirmation + the separate milking action (§7).
       Alert.alert(strings.herd.savedCow, cow.name, [
         {

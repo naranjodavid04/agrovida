@@ -13,6 +13,7 @@ import { getDatabase } from '@/db/database';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { formatAge, formatLiters, loadCowCard, loadGenealogy } from '@/features/herd/queries';
 import { useLocalQuery } from '@/features/herd/useLocalQuery';
+import { useSync } from '@/features/sync/SyncProvider';
 import { strings } from '@/lib/i18n/strings';
 import { setLifecycleStatus } from '@/repositories/cows';
 import { colors, fonts, radius, spacing, touchTarget } from '@/lib/theme/tokens';
@@ -27,6 +28,7 @@ export default function CowDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { role } = useAuth();
+  const { notifyLocalChange } = useSync();
 
   const query = useCallback(
     (driver: Parameters<typeof loadCowCard>[0]) => {
@@ -62,6 +64,7 @@ export default function CowDetailScreen() {
           onPress: () => {
             setLifecycleStatus(getDatabase(), cow.id, option.value);
             reload();
+            notifyLocalChange();
           },
         })),
       { text: strings.common.cancel, style: 'cancel' as const },
