@@ -11,7 +11,7 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 | 2 | Backend Supabase (migraciones, RLS) | 🟡 Escrita; ejecución bloqueada sin Docker (2026-07-01) |
 | 3 | Base de datos local (SQLite, repos, outbox) | ✅ Completada (2026-07-01) |
 | 4 | Autenticación y bootstrap de finca | ✅ Completada (2026-07-02) |
-| 5 | Sincronización | ⬜ Pendiente |
+| 5 | Sincronización | ✅ Completada (2026-07-02) |
 | 6 | UI del producto | ⬜ Pendiente |
 | 7 | Validación y cierre | ⬜ Pendiente |
 
@@ -117,7 +117,23 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 
 **Siguiente tarea:** Fase 5 — coordinador de sincronización.
 
-## Fase 5 — Sincronización (⬜ pendiente)
+## Fase 5 — Sincronización (✅ 2026-07-02)
+
+**Implementado:**
+- `src/sync/engine.ts` — ciclo completo: push del outbox en orden determinista (id ascendente; un fallo transitorio detiene la fase para no adelantar mutaciones), clasificación de resultados (ok / transitorio con backoff / violación de unicidad / rechazo permanente), pull por RPC con cursor que **solo avanza tras aplicar el lote en transacción**, tombstones aplicados, y protección de ediciones locales pendientes (una fila pulled no pisa una entidad con mutación en outbox).
+- Conflicto de leche D-016 en `resolveMilkUniqueConflict`: litros iguales → éxito idempotente; distintos → el servidor queda canónico localmente y el valor local va a `sync_conflicts` para resolución del dueño. Rechazos permanentes (RLS/constraints) también se preservan en conflictos — nada se descarta en silencio.
+- `src/sync/remote.ts` — interfaz `SyncRemote` + implementación Supabase (upsert por id, clasificación de errores Postgres, RPC `pull_changes`); permite inyectar un servidor falso en tests.
+- `src/sync/backoff.ts` (5s→15min acotado), `src/sync/syncState.ts` (cursor por finca), `src/sync/photos.ts` + `photoUploader.ts` (cola independiente D-010: subir → `photo_path` vía outbox; fallo → backoff sin bloquear datos).
+- `src/sync/coordinator.ts` — single-flight con re-ejecución si llega una solicitud durante un ciclo; espera sesión válida (ARCHITECTURE §7); snapshot de estado UI (`offline/syncing/synced/error/action_required` + pendientes + conflictos).
+- `src/features/sync/SyncProvider.tsx` — triggers automáticos: reconexión (NetInfo), foreground (AppState), refresh de auth (`onAuthStateChange`), timer acotado de reintento y `retryNow` manual para diagnósticos. Montado en el layout raíz.
+
+**Comandos ejecutados y resultados:**
+- `npx jest` ✔ **12 suites, 62 tests**. Escenarios de sync cubiertos: orden determinista + ack; interrupción a mitad de lote; fallo transitorio con backoff y reintento idempotente; entrega duplicada (ack perdido); pull con tombstones y avance de cursor solo tras aplicar; fallo de pull sin avance de cursor; edición local pendiente no pisada por pull; conflicto de leche igual/distinto (D-016); convergencia de dos dispositivos (criterio de aceptación §8); cola de fotos éxito/fallo.
+- `npx tsc --noEmit` ✔ · `npx eslint .` ✔ (corregidas 4 violaciones de reglas React Compiler en SyncProvider) · `npx prettier --check .` ✔
+
+**Riesgos:** el mapeo de códigos de error del PostgREST real puede diferir en matices del clasificador — se validará contra un proyecto Supabase real; el uploader de fotos usa `fetch(file://)` que se valida en dispositivo.
+
+**Siguiente tarea:** Fase 6 — UI del producto (pantallas 6–15).
 
 ## Fase 6 — UI del producto (⬜ pendiente)
 

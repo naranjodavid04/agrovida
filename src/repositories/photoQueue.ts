@@ -25,7 +25,7 @@ export function enqueuePhotoUpload(
   cowId: string,
   localUri: string,
 ): PhotoUploadJob {
-  const storagePath = `${farmId}/cows/${cowId}/${Date.now()}.webp`;
+  const storagePath = `${farmId}/cows/${cowId}/${Date.now()}.jpg`;
   driver.run(
     `INSERT INTO photo_upload_queue (farm_id, cow_id, local_uri, storage_path, created_at)
      VALUES (?, ?, ?, ?, ?)`,
