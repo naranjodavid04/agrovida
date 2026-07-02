@@ -40,6 +40,9 @@ create trigger cows_server_version
   before insert or update on public.cows
   for each row execute function public.set_server_version();
 
+-- No delete grant: corrections are soft deletes (updates), D-009.
+grant select, insert, update on public.cows to authenticated;
+
 -- A mother must belong to the same farm (FKs cannot express this).
 create or replace function public.check_cow_mother()
 returns trigger

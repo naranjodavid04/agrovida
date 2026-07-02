@@ -68,6 +68,13 @@ create index farms_version_idx on public.farms (server_version);
 create index farm_members_version_idx on public.farm_members (farm_id, server_version);
 create index farm_invites_version_idx on public.farm_invites (farm_id, server_version);
 
+-- Explicit table grants: RLS filters rows, grants gate the verbs. No client
+-- deletes anywhere (soft deletes are updates); farm_members has no insert
+-- grant because memberships only enter through SECURITY DEFINER paths.
+grant select, insert, update on public.farms to authenticated;
+grant select, update on public.farm_members to authenticated;
+grant select, insert, update on public.farm_invites to authenticated;
+
 -- ---------------------------------------------------------------------------
 -- RLS helpers (non-recursive: SECURITY DEFINER bypasses farm_members RLS)
 -- ---------------------------------------------------------------------------

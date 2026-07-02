@@ -8,7 +8,7 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 |------|-------------|--------|
 | 0 | Auditoría y plan | ✅ Completada (2026-07-01) |
 | 1 | Fundación (scaffold, tooling, tokens) | ✅ Completada (2026-07-01) |
-| 2 | Backend Supabase (migraciones, RLS) | 🟡 Escrita; ejecución bloqueada sin Docker (2026-07-01) |
+| 2 | Backend Supabase (migraciones, RLS) | ✅ Completada y validada en Docker (2026-07-02) |
 | 3 | Base de datos local (SQLite, repos, outbox) | ✅ Completada (2026-07-01) |
 | 4 | Autenticación y bootstrap de finca | ✅ Completada (2026-07-02) |
 | 5 | Sincronización | ✅ Completada (2026-07-02) |
@@ -79,6 +79,8 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 **Comandos ejecutados:** `npx supabase init` ✔ (estructura y `config.toml`).
 
 **Bloqueado (documentado):** `npx supabase db reset` y `npx supabase test db` requieren Docker Desktop — no disponible en esta máquina. Las migraciones y tests quedan versionados y listos; **ninguna prueba de BD se declara aprobada**.
+
+**Actualización 2026-07-02 — desbloqueado:** con Docker Desktop instalado se ejecutó `npx supabase start` + `db reset` (las 6 migraciones aplican limpias) + `npx supabase test db`. La primera corrida detectó un problema real: faltaban los **GRANTs de tabla** para `authenticated` (todo fallaba con `permission denied` antes de llegar a RLS). Se añadieron grants explícitos por tabla en las migraciones (sin `delete` en ninguna: las correcciones son soft deletes; `farm_members` sin `insert`: solo entra por rutas SECURITY DEFINER). Tras el fix: **35/35 aserciones pgTAP PASS** (aislamiento cross-farm, restricciones de worker, unicidad, genealogía, invitaciones, monotonicidad y orden del feed).
 
 **Siguiente tarea:** Fase 3 — espejo SQLite local con outbox transaccional.
 
@@ -200,3 +202,15 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 - El mapeo de errores PostgREST del clasificador de push puede requerir ajustes contra el backend real.
 
 **6. Siguiente tarea recomendada:** instalar Docker Desktop y ejecutar `npx supabase start && npx supabase db reset && npx supabase test db` para validar migraciones y RLS; después crear el proyecto Supabase, llenar `.env`, `npx supabase db push`, y probar el flujo completo en un dispositivo Android físico (`npx expo run:android` o build EAS), incluyendo el criterio de aceptación de modo avión.
+
+## Post-MVP (2026-07-02) — desbloqueos y endurecimiento
+
+**Hecho:**
+- **Tests de componentes UI**: `@testing-library/react-native` v14 (API async) sobre jest-expo — 15 tests nuevos para `StatusChips` (D-005: chips independientes, lifecycle inactivo reemplaza), `DeltaBadge` (dirección con signo+texto, no solo color), `SegmentedControl`, `TextField` (labels y rol alert), `Sparkline` (label accesible, división por cero). **Total: 17 suites, 77 tests.**
+- **Assets de marca**: ícono, adaptive icon (foreground/background/monochrome), splash y favicon generados en verde `#16794F` con la "A" blanca (GDI+; reemplazan los placeholders azules de Expo).
+- **Backend validado en Docker**: ver actualización en Fase 2 — fix de GRANTs + **35/35 pgTAP PASS**.
+- **`.env` real configurado** con la URL y publishable key del proyecto Supabase del usuario (`xzcfhqhjbiqtgawypzif`); el archivo está gitignoreado.
+
+**Pendiente (requiere acción del usuario):**
+- `npx supabase login` (flujo de navegador, interactivo) + contraseña de BD del proyecto para `link` y `db push` de las migraciones al proyecto hosted.
+- Prueba en teléfono: Expo Go si su versión soporta SDK 56; si exige SDK 57, decidir entre upgrade de SDK o dev build EAS (cuenta expo.dev).

@@ -32,6 +32,9 @@ create trigger milk_records_server_version
   before insert or update on public.milk_records
   for each row execute function public.set_server_version();
 
+-- No delete grant: corrections are soft deletes (updates), D-009.
+grant select, insert, update on public.milk_records to authenticated;
+
 -- The cow must belong to the same farm as the record.
 create or replace function public.check_milk_record_cow()
 returns trigger
