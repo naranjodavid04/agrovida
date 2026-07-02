@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native builds
+android/
+ios/
+*.apk
+*.aab
+*.ipa
+
+# Environment — never commit secrets
+.env
+.env.*
+!.env.example
+
+# Supabase local state
+supabase/.temp/
+supabase/.branches/
+
+# Testing
+coverage/
+
+# Logs and OS noise
+*.log
+npm-debug.*
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

@@ -1,0 +1,7 @@
+Lee por completo `CLAUDE.md`, `IMPLEMENTATION_PROMPT.md` y todos los documentos canónicos de `docs/` antes de modificar archivos. Revisa también `references/AgroVida.dc.html` únicamente como referencia visual, sin copiarlo como código productivo.
+
+Luego ejecuta el plan de `IMPLEMENTATION_PROMPT.md` de manera autónoma y por fases. Comienza por la Fase 0: audita la carpeta, verifica el entorno, resuelve cualquier contradicción usando la jerarquía establecida en `CLAUDE.md`, crea `docs/IMPLEMENTATION_STATUS.md` y presenta un plan breve. Después continúa con la Fase 1 y las siguientes siempre que el entorno lo permita.
+
+Construye la aplicación desde cero con React Native, Expo y TypeScript estricto. Mantén SQLite como fuente inmediata de verdad, usa una cola transaccional para sincronización, implementa Supabase mediante migraciones versionadas y RLS, y adapta fielmente el diseño seleccionado sin incorporar los controles exclusivos del prototipo.
+
+No te detengas solo porque falten credenciales externas: implementa y valida localmente todo lo posible, documenta con precisión los bloqueos reales y continúa con las tareas independientes. No declares ninguna fase terminada ni ninguna prueba aprobada sin ejecutar las comprobaciones correspondientes. Al finalizar cada fase, actualiza `docs/IMPLEMENTATION_STATUS.md` con archivos modificados, comandos ejecutados, resultados, riesgos y siguiente tarea recomendada.
