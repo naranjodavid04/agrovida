@@ -216,5 +216,10 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 - Migración de endurecimiento `20260702120000_lock_anon.sql`: revocado todo acceso de `anon` a tablas/funciones (EXECUTE explícito solo para `authenticated`); validada primero en local (35/35 pgTAP) y luego en hosted.
 - Smoke test contra el proyecto real: `GET /rest/v1/farms` como anónimo → **401 permission denied** ✔; antes del lock retornaba `[]` (RLS ya filtraba, ahora ni siquiera puede consultar).
 
+**Bug real encontrado en la prueba de campo (2026-07-02) — corregido:**
+- Síntoma: crear finca desde el teléfono fallaba con el mensaje genérico de sync. Causa: el cliente inserta con `RETURNING` y Postgres valida la fila devuelta contra la política SELECT (`is_farm_member`) **antes** de que el trigger cree la membresía owner → `new row violates row-level security policy for table "farms"`. El pgTAP original no lo cubría porque insertaba sin RETURNING.
+- Fix: migración `20260702130000_fix_farm_creator_visibility.sql` (el creador siempre ve su finca: `or created_by = auth.uid()`) + test de regresión con RETURNING (36/36 pgTAP local) + push a hosted + **E2E real verificado**: signup vía API + `POST /farms?select=*` → 201 con fila y membresía owner del trigger.
+- Mejora de UX derivada: `authErrorMessage` ya no promete reintentos automáticos en acciones directas (nuevo copy `actionFailed`/`notAllowed`; los errores RLS/permisos se distinguen).
+
 **Pendiente (requiere acción del usuario):**
-- Prueba en teléfono con Expo Go SDK 56 (APK ya instalado, compatible): `npm start` + escanear QR; registrar cuenta, crear finca, vaca y ordeño; criterio de modo avión y reconexión.
+- Continuar la prueba en teléfono con Expo Go SDK 56: crear finca (ya corregido), vaca y ordeño; criterio de modo avión y reconexión.

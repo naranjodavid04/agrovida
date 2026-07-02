@@ -17,5 +17,10 @@ export function authErrorMessage(error: unknown): string {
   ) {
     return strings.auth.firstLoginNeedsInternet;
   }
-  return `${strings.sync.errorWillRetry}`;
+  if (message.includes('row-level security') || message.includes('permission denied')) {
+    return strings.auth.notAllowed;
+  }
+  // These flows are direct actions, not outbox mutations: nothing retries
+  // automatically, so never promise that.
+  return strings.auth.actionFailed;
 }

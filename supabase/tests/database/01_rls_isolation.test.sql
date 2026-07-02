@@ -2,7 +2,7 @@
 -- Run with: npx supabase test db   (requires Docker / local stack)
 begin;
 create extension if not exists pgtap;
-select plan(10);
+select plan(11);
 
 -- Seed two unrelated users as postgres.
 insert into auth.users (id, email) values
@@ -20,6 +20,18 @@ select lives_ok(
     values ('10000000-0000-0000-0000-000000000001', 'Farm One',
             '00000000-0000-0000-0000-000000000001')$$,
   'owner1 can create a farm'
+);
+
+-- Regression: the client inserts with RETURNING, which Postgres checks
+-- against the SELECT policy before the bootstrap trigger adds the
+-- membership. The creator must always see their own farm row.
+select results_eq(
+  $$insert into farms (id, name, created_by)
+    values ('10000000-0000-0000-0000-000000000009', 'Farm Returning',
+            '00000000-0000-0000-0000-000000000001')
+    returning name$$,
+  $$values ('Farm Returning'::text)$$,
+  'farm creation with RETURNING works (PostgREST client path)'
 );
 
 select is(

@@ -35,6 +35,8 @@ export const strings = {
     passwordTooShort: 'La contraseña debe tener al menos 8 caracteres.',
     passwordsDontMatch: 'Las contraseñas no coinciden.',
     sessionExpired: 'Tu sesión expiró. Conéctate a internet para renovarla.',
+    actionFailed: 'No se pudo completar la acción. Verifica tu conexión e inténtalo de nuevo.',
+    notAllowed: 'No tienes permisos para realizar esta acción.',
     logoutPendingWarning:
       'Hay registros sin sincronizar. Si cierras sesión ahora se perderán. ¿Deseas continuar?',
     noAccount: '¿No tienes cuenta? Regístrate',
