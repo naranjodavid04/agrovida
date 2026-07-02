@@ -12,7 +12,7 @@ export default function BootstrapScreen() {
 
   if (status === 'signedOut') return <Redirect href="/login" />;
   if (status === 'needsFarm') return <Redirect href="/farm-select" />;
-  if (status === 'ready') return <Redirect href="/home" />;
+  if (status === 'ready') return <Redirect href="/(tabs)" />;
 
   return (
     <SafeAreaView style={styles.container}>

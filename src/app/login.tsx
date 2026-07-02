@@ -19,7 +19,7 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (status === 'ready') return <Redirect href="/home" />;
+  if (status === 'ready') return <Redirect href="/(tabs)" />;
   if (status === 'needsFarm') return <Redirect href="/farm-select" />;
 
   const submit = async () => {

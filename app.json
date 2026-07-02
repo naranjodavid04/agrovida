@@ -38,7 +38,8 @@
           "cameraPermission": "AgroVida usa la cámara para tomar fotos de los animales del hato."
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,

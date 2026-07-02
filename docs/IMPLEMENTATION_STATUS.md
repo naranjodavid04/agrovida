@@ -12,7 +12,7 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 | 3 | Base de datos local (SQLite, repos, outbox) | ✅ Completada (2026-07-01) |
 | 4 | Autenticación y bootstrap de finca | ✅ Completada (2026-07-02) |
 | 5 | Sincronización | ✅ Completada (2026-07-02) |
-| 6 | UI del producto | ⬜ Pendiente |
+| 6 | UI del producto | ✅ Completada (2026-07-02) |
 | 7 | Validación y cierre | ⬜ Pendiente |
 
 ## Entorno verificado (2026-07-01)
@@ -135,6 +135,27 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 
 **Siguiente tarea:** Fase 6 — UI del producto (pantallas 6–15).
 
-## Fase 6 — UI del producto (⬜ pendiente)
+## Fase 6 — UI del producto (✅ 2026-07-02)
+
+**Implementado — las 15 pantallas requeridas (PRODUCT_SPEC §4):**
+- Tabs Inicio/Rebaño/Resumen (`src/app/(tabs)/`) + rutas secundarias (`cow/new`, `cow/[id]`, `cow/[id]/edit|milk|history`, `members`, `settings`, `sync-status`), sobre las pantallas 1–5 de la Fase 4.
+- **Carrusel Design A** (pantalla 6, `CowCard.tsx`): banner de foto con chips superpuestos, nombre/raza, litros de hoy dominante (Space Grotesk 46), delta vs ayer con signo y texto, sparkline 7 días (react-native-svg), edad/partos/chapeta, acción "Ver perfil". Una vaca por viewport (Animated.FlatList + reanimated, paging con clamp), indicador textual `n / total`, botones accesibles anterior/siguiente sin swipe, scroll vertical intacto.
+- Rebaño (7): búsqueda nombre/chapeta, miniatura 48dp, chips, total de hoy y mini-sparkline, estados vacío/sin resultados, FAB agregar.
+- Detalle (8): producción derivada, info, genealogía navegable madre↔hijas, "foto pendiente de subir", registrar/historial, y cambio de lifecycle **solo owner**.
+- Alta/edición (9, `CowForm.tsx`): foto (cámara/galería → resize 1280 + JPEG 0.7 → almacenamiento de la app → cola de subida en la misma transacción), nombre, chapeta, **fecha de nacimiento con selector nativo + flag estimada** (sin edad numérica), raza, selector de madre con búsqueda, partos, lactancia y preñez **separadas** (sin estado combinado, sin "leche hoy"); al guardar ofrece "Registrar ordeño" como acción aparte.
+- Registrar leche (10): fecha hoy por defecto, segmentado mañana/tarde, teclado decimal grande, muestra el registro existente de la jornada, guarda offline con confirmación local inmediata + háptica, y preserva el input ante error.
+- Historial (11), Resumen de finca (12: total del día dominante, delta, sparkline de finca, vacas con/sin registro), Miembros e invitaciones owner-only (13), Ajustes con logout D-015 (14), Diagnóstico de sync (15: estado, pendientes, última sync, **resolución explícita de conflictos D-016** conservar servidor / usar mi valor, retry manual, log redactado).
+- Sin controles del prototipo: sin Diseño A/B, sin ES/EN, sin bezel, sin image-slot. Copy 100% es-CO centralizado; chips y deltas nunca comunican solo por color; targets ≥44/48dp; labels de screen reader en todas las acciones.
+- `useLocalQuery`: hook de lectura SQLite que refresca en focus y tras cada snapshot de sync (la UI nunca emite SQL).
+- Dependencias añadidas vía `expo install`: `@react-native-community/datetimepicker`, `expo-image-manipulator`, `@expo/vector-icons`.
+
+**Comandos ejecutados y resultados:**
+- `npx tsc --noEmit` ✔ · `npx eslint .` ✔ (corregidas violaciones de reglas React Compiler: refs en render, setState síncrono en efectos, memoización) · `npx prettier --check .` ✔
+- `npx jest` ✔ 12 suites, 62 tests · `npx expo-doctor` ✔ 21/21
+- `npx expo export --platform android` ✔ — bundle Hermes generado (6.1MB), Metro compila toda la UI.
+
+**Riesgos:** gestos/animaciones del carrusel y flujos de cámara/fecha solo verificables en dispositivo (sin emulador local); fotos de otros dispositivos requieren red para URL firmada (documentado en `CowPhoto`).
+
+**Siguiente tarea:** Fase 7 — validación integral y reporte final.
 
 ## Fase 7 — Validación y cierre (⬜ pendiente)

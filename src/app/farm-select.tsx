@@ -24,7 +24,7 @@ export default function FarmSelectScreen() {
   const [busy, setBusy] = useState(false);
 
   if (status === 'signedOut') return <Redirect href="/login" />;
-  if (status === 'ready') return <Redirect href="/home" />;
+  if (status === 'ready') return <Redirect href="/(tabs)" />;
 
   const create = async () => {
     setError(null);
