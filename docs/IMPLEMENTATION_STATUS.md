@@ -8,7 +8,7 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 |------|-------------|--------|
 | 0 | Auditoría y plan | ✅ Completada (2026-07-01) |
 | 1 | Fundación (scaffold, tooling, tokens) | ✅ Completada (2026-07-01) |
-| 2 | Backend Supabase (migraciones, RLS) | ⬜ Pendiente |
+| 2 | Backend Supabase (migraciones, RLS) | 🟡 Escrita; ejecución bloqueada sin Docker (2026-07-01) |
 | 3 | Base de datos local (SQLite, repos, outbox) | ⬜ Pendiente |
 | 4 | Autenticación y bootstrap de finca | ⬜ Pendiente |
 | 5 | Sincronización | ⬜ Pendiente |
@@ -65,7 +65,22 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 
 **Siguiente tarea:** Fase 2 — migraciones Supabase con RLS y RPC `pull_changes`.
 
-## Fase 2 — Backend Supabase (⬜ pendiente)
+## Fase 2 — Backend Supabase (🟡 escrita, no ejecutada — 2026-07-01)
+
+**Implementado (6 migraciones + 3 suites pgTAP):**
+- `sync_version_seq` global + trigger `set_server_version()` en las 5 tablas (D-008: el cursor nunca es un reloj de dispositivo).
+- `farms`, `farm_members`, `farm_invites` con helpers RLS no recursivos (`is_farm_member`, `farm_role`, `is_farm_owner` — SECURITY DEFINER), trigger que crea la membresía owner al crear finca, y `accept_farm_invite()` SECURITY DEFINER (valida email autenticado, pendiente y no expirada). `farm_members` no tiene política de INSERT a propósito: solo entra por rutas revisadas.
+- `cows`: chapeta única (case-insensitive) entre no-eliminadas por finca, `mother_id ≠ id` (CHECK), madre de la misma finca (trigger), lifecycle owner-only vía USING/WITH CHECK (worker solo toca vacas activas y no puede sacarlas de `active`).
+- `milk_records`: única sesión activa por finca/vaca/fecha/jornada (índice parcial), `liters entre 0 y 60` (espejo de `MAX_LITERS_PER_SESSION`), vaca de la misma finca (trigger).
+- RPC `pull_changes(farm, after_version, limit)` SECURITY INVOKER (RLS filtra cada rama) — feed unificado ordenado por `server_version` (D-014).
+- Bucket privado `cow-photos` con políticas por primer segmento de ruta = `farm_id`.
+- Tests pgTAP (35 aserciones): aislamiento cross-farm y pull vacío para no-miembros; permisos worker vs owner (lifecycle, invitaciones, membresías); unicidad de chapeta y sesión, genealogía, tope de litros, monotonicidad de `server_version`, aceptación de invitación.
+
+**Comandos ejecutados:** `npx supabase init` ✔ (estructura y `config.toml`).
+
+**Bloqueado (documentado):** `npx supabase db reset` y `npx supabase test db` requieren Docker Desktop — no disponible en esta máquina. Las migraciones y tests quedan versionados y listos; **ninguna prueba de BD se declara aprobada**.
+
+**Siguiente tarea:** Fase 3 — espejo SQLite local con outbox transaccional.
 
 ## Fase 3 — Base de datos local (⬜ pendiente)
 
