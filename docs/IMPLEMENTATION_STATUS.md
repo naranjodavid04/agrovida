@@ -13,7 +13,7 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 | 4 | Autenticación y bootstrap de finca | ✅ Completada (2026-07-02) |
 | 5 | Sincronización | ✅ Completada (2026-07-02) |
 | 6 | UI del producto | ✅ Completada (2026-07-02) |
-| 7 | Validación y cierre | ⬜ Pendiente |
+| 7 | Validación y cierre | ✅ Completada (2026-07-02) — pendientes solo los pasos bloqueados por entorno |
 
 ## Entorno verificado (2026-07-01)
 
@@ -158,4 +158,45 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 
 **Siguiente tarea:** Fase 7 — validación integral y reporte final.
 
-## Fase 7 — Validación y cierre (⬜ pendiente)
+## Fase 7 — Validación y cierre (✅ 2026-07-02)
+
+### Comandos ejecutados y resultados reales (2026-07-02)
+
+| Comando | Resultado |
+|---------|-----------|
+| `npm install` | ✔ up to date, 1119 paquetes auditados |
+| `npx tsc --noEmit` | ✔ sin errores |
+| `npx eslint .` | ✔ sin errores ni warnings |
+| `npx prettier --check .` | ✔ formato correcto |
+| `npx jest` | ✔ **12 suites, 62 tests, 0 fallos** |
+| `npx expo-doctor` | ✔ 21/21 checks |
+| `npx expo export --platform android` | ✔ bundle Hermes generado (`dist/`, 6.1MB) |
+| `npx supabase db reset` / `npx supabase test db` | ⛔ **bloqueado**: requiere Docker Desktop (no instalado) |
+| Build/emulador Android (`npx expo run:android`) | ⛔ **bloqueado**: sin Android SDK/adb/Java en la máquina |
+| E2E contra proyecto Supabase real | ⛔ **bloqueado**: sin credenciales (`.env`) |
+
+### Reporte final (formato de IMPLEMENTATION_PROMPT.md)
+
+**1. Fases implementadas:** 0–7 completas en lo ejecutable localmente. La Fase 2 tiene el SQL y los tests pgTAP escritos y versionados pero sin ejecutar (Docker).
+
+**2. Decisiones de arquitectura importantes:**
+- D-014: pull por feed unificado (`pull_changes` RPC, SECURITY INVOKER) con un cursor por finca.
+- D-015: logout con advertencia si hay outbox pendiente; al confirmar se limpia el dispositivo.
+- D-016: conflicto de sesión de leche → servidor canónico + valor local preservado en `sync_conflicts` con resolución explícita en diagnósticos.
+- D-017: driver SQLite síncrono intercambiable (expo-sqlite en la app, better-sqlite3 en Jest) — permitió probar migraciones, repos y todo el motor de sync sin emulador.
+- D-018: Expo SDK 56 (estable maduro) elegido por el usuario frente al 57 recién publicado.
+- Pull nunca pisa entidades con mutaciones pendientes en el outbox; el cursor solo avanza tras aplicar el lote en transacción; los push van en orden determinista y un fallo transitorio detiene la fase.
+
+**3. Archivos creados/cambiados:** ~70 archivos. Núcleo: `src/db/*` (driver, esquema v1, migraciones), `src/repositories/*` (cows, milk, farms, appState, conflicts, photoQueue), `src/sync/*` (outbox, engine, coordinator, remote, backoff, photos, syncState), `src/features/*` (auth, bootstrap, herd, sync UI), `src/app/*` (15 pantallas), `src/lib/*` (tokens, strings es-CO, env, logger, dates, validation, ids, clock, supabase), `supabase/migrations/*` (6 migraciones), `supabase/tests/database/*` (3 suites pgTAP), `tests/*` (12 suites Jest), configs (tsconfig estricto, eslint, prettier, jest, babel), `docs/DECISIONS.md` (D-014…D-018), este archivo.
+
+**4. Tests ejecutados:** los de la tabla superior. Cobertura de escenarios clave: transacción+outbox con rollback, unicidad local de chapeta/sesión, derivados (hoy/ayer/7 días/finca) con casos borde, edad derivada, push determinista, interrupción, backoff+reintento idempotente, entrega duplicada, tombstones, cursor solo-tras-aplicar, edición local pendiente protegida del pull, conflicto de leche igual/distinto, convergencia de dos dispositivos, cola de fotos éxito/fallo, bootstrap/caché offline, guard de logout.
+
+**5. Limitaciones y bloqueos honestos:**
+- **RLS sin ejecutar**: las políticas y los 35 asserts pgTAP están escritos pero no corridos (falta Docker). Ninguna prueba de BD remota se declara aprobada.
+- **Sin validación en dispositivo**: carrusel/gestos, cámara, selector de fecha, háptica y el driver expo-sqlite real solo se verificaron por compilación del bundle, no en runtime Android.
+- **Sin credenciales Supabase**: login/sync reales sin probar E2E; los criterios de aceptación multi-dispositivo se cubrieron con servidor simulado en Jest.
+- Fotos de otros dispositivos requieren conexión (URL firmada del bucket privado).
+- Assets de ícono/splash siguen siendo placeholders de Expo.
+- El mapeo de errores PostgREST del clasificador de push puede requerir ajustes contra el backend real.
+
+**6. Siguiente tarea recomendada:** instalar Docker Desktop y ejecutar `npx supabase start && npx supabase db reset && npx supabase test db` para validar migraciones y RLS; después crear el proyecto Supabase, llenar `.env`, `npx supabase db push`, y probar el flujo completo en un dispositivo Android físico (`npx expo run:android` o build EAS), incluyendo el criterio de aceptación de modo avión.
