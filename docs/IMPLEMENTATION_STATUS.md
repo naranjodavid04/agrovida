@@ -10,7 +10,7 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 | 1 | Fundación (scaffold, tooling, tokens) | ✅ Completada (2026-07-01) |
 | 2 | Backend Supabase (migraciones, RLS) | 🟡 Escrita; ejecución bloqueada sin Docker (2026-07-01) |
 | 3 | Base de datos local (SQLite, repos, outbox) | ✅ Completada (2026-07-01) |
-| 4 | Autenticación y bootstrap de finca | ⬜ Pendiente |
+| 4 | Autenticación y bootstrap de finca | ✅ Completada (2026-07-02) |
 | 5 | Sincronización | ⬜ Pendiente |
 | 6 | UI del producto | ⬜ Pendiente |
 | 7 | Validación y cierre | ⬜ Pendiente |
@@ -99,7 +99,23 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 
 **Siguiente tarea:** Fase 4 — autenticación y bootstrap de finca.
 
-## Fase 4 — Autenticación y bootstrap (⬜ pendiente)
+## Fase 4 — Autenticación y bootstrap (✅ 2026-07-02)
+
+**Implementado:**
+- `src/lib/supabase.ts`: cliente con sesión persistida en `expo-sqlite/kv-store` (sobrevive reinicios offline), auto-refresh, sin detección de URL.
+- `src/features/auth/session.ts`: login/registro (con estado `needs_confirmation`), lectura de sesión almacenada sin red, guard de logout D-015 (`hasPendingLocalChanges`) y `signOutAndClear` (revoca sesión local aun offline + `clearLocalData`).
+- `src/features/bootstrap/service.ts`: `bootstrapFromRemote` cachea fincas/membresías/invitaciones + identidad en una transacción; `restoreFromCache` para reinicios offline (continúa tras expiración del token, sync espera refresh); `createFarm` (el trigger del backend crea la membresía owner), `acceptInvite` vía RPC, `inviteMember`, `deactivateMember`; finca activa persistida y validada contra membresías.
+- `src/features/auth/AuthProvider.tsx`: máquina de estados `loading → signedOut | needsFarm | ready` con `sessionExpired`, acciones de sesión/finca; montada en el layout raíz.
+- Pantallas 1–5: bootstrap/loading, login, registro, crear/seleccionar finca + invitaciones pendientes con aceptación; componentes reutilizables (`ScreenContainer` con teclado/safe-area, `TextField` ≥48dp, `AppButton`, `OfflineBanner`); mapeo de errores auth a copy es-CO (`errors.ts`); aviso explícito cuando falta `.env`.
+- `clearLocalData` movido a `src/db/maintenance.ts` (sin imports de expo) para testearlo en Node.
+
+**Comandos ejecutados y resultados:**
+- `npx jest` ✔ **9 suites, 48 tests** (nuevos: bootstrap cachea y restaura, finca activa validada, membresía inactiva sin rol, createFarm aplica local, acceptInvite llama la RPC, guard/limpieza de logout D-015).
+- `npx tsc --noEmit` ✔ · `npx eslint .` ✔ · `npx prettier --check .` ✔
+
+**Riesgos:** flujos online (login real, RLS) no ejercitados contra un proyecto Supabase — cubiertos por mocks; pendiente validación E2E cuando haya credenciales.
+
+**Siguiente tarea:** Fase 5 — coordinador de sincronización.
 
 ## Fase 5 — Sincronización (⬜ pendiente)
 

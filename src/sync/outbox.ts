@@ -74,6 +74,12 @@ export function countPendingMutations(driver: SqlDriver, farmId: string): number
   return row?.n ?? 0;
 }
 
+/** Pending mutations across all farms (D-015 logout warning). */
+export function countAllPendingMutations(driver: SqlDriver): number {
+  const row = driver.get<{ n: number }>('SELECT COUNT(*) AS n FROM sync_queue');
+  return row?.n ?? 0;
+}
+
 /** Removes an acknowledged mutation after a successful push. */
 export function acknowledgeMutation(driver: SqlDriver, id: number): void {
   driver.run('DELETE FROM sync_queue WHERE id = ?', [id]);

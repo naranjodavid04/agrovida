@@ -144,6 +144,28 @@ export function listMembers(driver: SqlDriver, farmId: string): FarmMember[] {
     }));
 }
 
+/** Pending invitations addressed to the signed-in user (screen 5). */
+export function listPendingInvitesForEmail(driver: SqlDriver, email: string): FarmInvite[] {
+  const normalized = email.trim().toLowerCase();
+  return driver
+    .all<InviteRow>(
+      `SELECT * FROM farm_invites
+       WHERE normalized_email = ? AND status = 'pending'
+       ORDER BY created_at DESC`,
+      [normalized],
+    )
+    .map((row) => ({
+      id: row.id,
+      farmId: row.farm_id,
+      normalizedEmail: row.normalized_email,
+      role: row.role,
+      status: row.status,
+      expiresAt: row.expires_at,
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+    }));
+}
+
 export function listInvites(driver: SqlDriver, farmId: string): FarmInvite[] {
   return driver
     .all<InviteRow>(`SELECT * FROM farm_invites WHERE farm_id = ? ORDER BY created_at DESC`, [
