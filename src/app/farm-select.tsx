@@ -1,10 +1,11 @@
-import { Redirect } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/AppButton';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { TextField } from '@/components/TextField';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { authErrorMessage } from '@/features/auth/errors';
@@ -12,25 +13,42 @@ import { strings } from '@/lib/i18n/strings';
 import { colors, fonts, radius, spacing, touchTarget } from '@/lib/theme/tokens';
 
 /**
- * Screens 4 y 5 — create/select farm and pending invitations. Selection works
- * offline from the cache; creating a farm or accepting an invitation needs
- * connectivity (PRODUCT_SPEC §3).
+ * Screens 4 y 5 — create/select farm and pending invitations. Also the
+ * "switch farm" screen for users who belong to several farms (e.g. a worker
+ * who owns their own farm), so it renders in the `ready` state too and
+ * navigates explicitly after choosing. Selection works offline from the
+ * cache; creating a farm or accepting an invitation needs connectivity.
  */
 export default function FarmSelectScreen() {
-  const { status, farms, pendingInvites, selectFarm, createNewFarm, acceptFarmInvite, signOut } =
-    useAuth();
+  const {
+    status,
+    farms,
+    activeFarmId,
+    pendingInvites,
+    selectFarm,
+    createNewFarm,
+    acceptFarmInvite,
+    signOut,
+  } = useAuth();
+  const router = useRouter();
   const [farmName, setFarmName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   if (status === 'signedOut') return <Redirect href="/login" />;
-  if (status === 'ready') return <Redirect href="/(tabs)" />;
+  const switching = status === 'ready';
+
+  const choose = (farmId: string) => {
+    selectFarm(farmId);
+    router.replace('/(tabs)');
+  };
 
   const create = async () => {
     setError(null);
     setBusy(true);
     try {
       await createNewFarm(farmName);
+      router.replace('/(tabs)');
     } catch (err) {
       setError(authErrorMessage(err));
     } finally {
@@ -52,7 +70,11 @@ export default function FarmSelectScreen() {
 
   return (
     <ScreenContainer scroll>
-      <Text style={styles.title}>{strings.farm.selectFarm}</Text>
+      {switching ? (
+        <ScreenHeader title={strings.farm.switchFarm} />
+      ) : (
+        <Text style={styles.title}>{strings.farm.selectFarm}</Text>
+      )}
       <OfflineBanner />
 
       {farms.length === 0 && pendingInvites.length === 0 ? (
@@ -67,16 +89,23 @@ export default function FarmSelectScreen() {
           data={farms}
           scrollEnabled={false}
           keyExtractor={(farm) => farm.id}
-          renderItem={({ item }) => (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${strings.farm.selectFarm}: ${item.name}`}
-              style={({ pressed }) => [styles.farmRow, pressed && styles.pressed]}
-              onPress={() => selectFarm(item.id)}
-            >
-              <Text style={styles.farmName}>{item.name}</Text>
-            </Pressable>
-          )}
+          renderItem={({ item }) => {
+            const isActive = item.id === activeFarmId;
+            return (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${strings.farm.selectFarm}: ${item.name}`}
+                accessibilityState={{ selected: isActive }}
+                style={({ pressed }) => [styles.farmRow, pressed && styles.pressed]}
+                onPress={() => choose(item.id)}
+              >
+                <Text style={styles.farmName}>{item.name}</Text>
+                {isActive ? (
+                  <Text style={styles.activeTag}>{strings.settings.activeFarm}</Text>
+                ) : null}
+              </Pressable>
+            );
+          }}
         />
       ) : null}
 
@@ -122,12 +151,14 @@ export default function FarmSelectScreen() {
         />
       </View>
 
-      <AppButton
-        title={strings.auth.logout}
-        variant="secondary"
-        onPress={() => void signOut({ force: true })}
-        style={styles.logout}
-      />
+      {!switching ? (
+        <AppButton
+          title={strings.auth.logout}
+          variant="secondary"
+          onPress={() => void signOut({ force: true })}
+          style={styles.logout}
+        />
+      ) : null}
     </ScreenContainer>
   );
 }
@@ -176,6 +207,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: 16,
     color: colors.textPrimary,
+  },
+  activeTag: {
+    fontFamily: fonts.semiBold,
+    fontSize: 12,
+    color: colors.primary,
+    marginTop: 2,
   },
   section: {
     marginTop: spacing.xxl,

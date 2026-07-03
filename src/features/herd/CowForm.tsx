@@ -103,7 +103,10 @@ export function CowForm({ existing }: Props) {
       const uri = await pickCowPhoto(source);
       if (uri) setNewPhotoUri(uri);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      // Impossible to miss in the field; the diagnostics log keeps details.
+      Alert.alert(strings.herd.photoError, message);
     }
   };
 

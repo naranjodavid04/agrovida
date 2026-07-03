@@ -81,6 +81,9 @@ export const strings = {
     photoPending: 'Foto pendiente de subir',
     takePhoto: 'Tomar foto',
     pickPhoto: 'Elegir de la galería',
+    photoError: 'No se pudo procesar la foto.',
+    photoPermissionDenied:
+      'Permiso de cámara o galería denegado. Actívalo en los ajustes del teléfono.',
     duplicateTag: 'Ya existe una vaca activa con esta chapeta.',
     ownMotherError: 'Una vaca no puede ser su propia madre.',
     lifecycleOwnerOnly: 'Solo el propietario puede cambiar este estado.',
