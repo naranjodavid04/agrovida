@@ -73,3 +73,6 @@ Do not use device `updated_at` as the pull cursor. The backend must assign a mon
 
 ## D-018 — Expo SDK 56 at bootstrap (2026-07-01)
 **Decision:** Per D-012 the SDK was verified at bootstrap: npm `latest` was Expo SDK 57 (57.0.1, published days earlier). The user chose **SDK 56** (56.0.x, mature patch level) for ecosystem stability. Revisit the upgrade to SDK 57+ after the MVP validates.
+
+## D-019 — Ampliación post-MVP (2026-07-02)
+**Decision:** Validado el MVP en campo por el usuario, se amplía el alcance en este orden: (1) eventos de salud con retiro de leche por medicamento, (2) eventos de reproducción (celo, inseminación, chequeo, parto) con fecha estimada de parto **derivada** (inseminación + 283 días, nunca almacenada), (3) exportación CSV, (4) recordatorios. Mismas reglas no negociables: SQLite primero, outbox transaccional, RLS por finca, valores derivados no almacenados. Las secciones de "no objetivos" de `PRODUCT_SPEC.md` §5 y los límites de `CLAUDE.md` quedan superseded por esta decisión en esos cuatro puntos.

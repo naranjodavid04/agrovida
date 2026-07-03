@@ -15,18 +15,18 @@ export type PushResult =
   | { kind: 'transient'; message: string };
 
 export interface PullRow {
-  entity_type: 'farm' | 'farm_member' | 'farm_invite' | 'cow' | 'milk_record';
+  entity_type:
+    'farm' | 'farm_member' | 'farm_invite' | 'cow' | 'milk_record' | 'health_event' | 'repro_event';
   entity_id: string;
   server_version: number;
   deleted_at: string | null;
   row_data: Record<string, unknown>;
 }
 
+export type PushEntityType = 'cow' | 'milk_record' | 'health_event' | 'repro_event';
+
 export interface SyncRemote {
-  upsertEntity(
-    entityType: 'cow' | 'milk_record',
-    payload: Record<string, unknown>,
-  ): Promise<PushResult>;
+  upsertEntity(entityType: PushEntityType, payload: Record<string, unknown>): Promise<PushResult>;
   /** Canonical active record for a milk session (conflict resolution, D-016). */
   fetchMilkRecord(
     farmId: string,
@@ -40,6 +40,8 @@ export interface SyncRemote {
 const TABLE_BY_ENTITY = {
   cow: 'cows',
   milk_record: 'milk_records',
+  health_event: 'health_events',
+  repro_event: 'repro_events',
 } as const;
 
 interface PostgrestishError {

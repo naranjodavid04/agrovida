@@ -3,6 +3,7 @@ import { now, nowIso } from '@/lib/clock';
 import { createLogger } from '@/lib/logger';
 import { recordConflict } from '@/repositories/conflicts';
 import { applyRemoteCow } from '@/repositories/cows';
+import { applyRemoteHealthEvent, applyRemoteReproEvent } from '@/repositories/events';
 import { applyRemoteFarm, applyRemoteInvite, applyRemoteMember } from '@/repositories/farms';
 import { applyRemoteMilkRecord } from '@/repositories/milk';
 
@@ -261,6 +262,12 @@ function applyPulledRow(driver: SqlDriver, row: PullRow): void {
       break;
     case 'milk_record':
       applyRemoteMilkRecord(driver, row.row_data);
+      break;
+    case 'health_event':
+      applyRemoteHealthEvent(driver, row.row_data);
+      break;
+    case 'repro_event':
+      applyRemoteReproEvent(driver, row.row_data);
       break;
   }
 }

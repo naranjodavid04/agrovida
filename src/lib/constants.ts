@@ -14,3 +14,6 @@ export const MILK_SESSIONS = ['morning', 'afternoon'] as const;
 
 /** Days shown in the production sparkline. */
 export const TREND_DAYS = 7;
+
+/** Bovine gestation length used to derive the expected calving date (D-019). */
+export const GESTATION_DAYS = 283;

@@ -1,4 +1,4 @@
-import type { PullRow, PushResult, SyncRemote } from '@/sync/remote';
+import type { PullRow, PushEntityType, PushResult, SyncRemote } from '@/sync/remote';
 import type { MilkSession } from '@/types/domain';
 
 /**
@@ -11,9 +11,11 @@ type Row = Record<string, unknown>;
 
 export class FakeRemoteServer implements SyncRemote {
   private version = 0;
-  readonly tables: { cow: Map<string, Row>; milk_record: Map<string, Row> } = {
+  readonly tables: Record<PushEntityType, Map<string, Row>> = {
     cow: new Map(),
     milk_record: new Map(),
+    health_event: new Map(),
+    repro_event: new Map(),
   };
   /** Upsert log to assert idempotency/duplicate delivery. */
   readonly upsertLog: string[] = [];
@@ -28,13 +30,13 @@ export class FakeRemoteServer implements SyncRemote {
   }
 
   /** Seeds a server-side row directly (as if another device pushed it). */
-  seed(entityType: 'cow' | 'milk_record', row: Row): Row {
+  seed(entityType: PushEntityType, row: Row): Row {
     const stored = { ...row, server_version: this.nextVersion() };
     this.tables[entityType].set(String(row.id), stored);
     return stored;
   }
 
-  async upsertEntity(entityType: 'cow' | 'milk_record', payload: Row): Promise<PushResult> {
+  async upsertEntity(entityType: PushEntityType, payload: Row): Promise<PushResult> {
     this.upsertLog.push(`${entityType}:${String(payload.id)}`);
     if (this.failNextUpserts > 0) {
       this.failNextUpserts -= 1;
@@ -84,7 +86,7 @@ export class FakeRemoteServer implements SyncRemote {
   async pullChanges(farmId: string, afterVersion: number, limit: number): Promise<PullRow[]> {
     if (this.failPulls) throw new Error('simulated pull failure');
     const rows: PullRow[] = [];
-    const collect = (entityType: 'cow' | 'milk_record', map: Map<string, Row>) => {
+    const collect = (entityType: PushEntityType, map: Map<string, Row>) => {
       for (const row of map.values()) {
         if (row.farm_id === farmId && Number(row.server_version) > afterVersion) {
           rows.push({
@@ -99,6 +101,8 @@ export class FakeRemoteServer implements SyncRemote {
     };
     collect('cow', this.tables.cow);
     collect('milk_record', this.tables.milk_record);
+    collect('health_event', this.tables.health_event);
+    collect('repro_event', this.tables.repro_event);
     rows.sort((a, b) => a.server_version - b.server_version);
     return rows.slice(0, limit);
   }

@@ -60,6 +60,38 @@ export interface Cow {
   deletedAt: string | null;
 }
 
+export type HealthEventType = 'treatment' | 'vaccination' | 'illness' | 'checkup' | 'other';
+export type ReproEventType = 'heat' | 'insemination' | 'pregnancy_check' | 'calving' | 'abortion';
+export type PregnancyCheckResult = 'pregnant' | 'open';
+
+export interface HealthEvent {
+  id: string;
+  farmId: string;
+  cowId: string;
+  /** ISO date (YYYY-MM-DD). */
+  eventDate: string;
+  eventType: HealthEventType;
+  description: string;
+  /** Milk must be discarded until this date (inclusive), when present. */
+  withdrawalUntil: string | null;
+  recordedBy: string;
+  createdAt: string;
+  deletedAt: string | null;
+}
+
+export interface ReproEvent {
+  id: string;
+  farmId: string;
+  cowId: string;
+  eventDate: string;
+  eventType: ReproEventType;
+  result: PregnancyCheckResult | null;
+  notes: string | null;
+  recordedBy: string;
+  createdAt: string;
+  deletedAt: string | null;
+}
+
 export interface MilkRecord {
   id: string;
   farmId: string;

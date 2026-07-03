@@ -147,4 +147,41 @@ export const LOCAL_MIGRATIONS: readonly string[] = [
     value TEXT NOT NULL
   );
   `,
+
+  // v2 — health and reproduction events (D-019)
+  `
+  CREATE TABLE health_events (
+    id TEXT PRIMARY KEY,
+    farm_id TEXT NOT NULL,
+    cow_id TEXT NOT NULL,
+    event_date TEXT NOT NULL,
+    event_type TEXT NOT NULL
+      CHECK (event_type IN ('treatment', 'vaccination', 'illness', 'checkup', 'other')),
+    description TEXT NOT NULL,
+    withdrawal_until TEXT,
+    recorded_by TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    deleted_at TEXT,
+    server_version INTEGER NOT NULL DEFAULT 0,
+    local_updated_at TEXT NOT NULL
+  );
+  CREATE INDEX health_events_cow_idx ON health_events (cow_id, event_date DESC);
+
+  CREATE TABLE repro_events (
+    id TEXT PRIMARY KEY,
+    farm_id TEXT NOT NULL,
+    cow_id TEXT NOT NULL,
+    event_date TEXT NOT NULL,
+    event_type TEXT NOT NULL
+      CHECK (event_type IN ('heat', 'insemination', 'pregnancy_check', 'calving', 'abortion')),
+    result TEXT CHECK (result IS NULL OR result IN ('pregnant', 'open')),
+    notes TEXT,
+    recorded_by TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    deleted_at TEXT,
+    server_version INTEGER NOT NULL DEFAULT 0,
+    local_updated_at TEXT NOT NULL
+  );
+  CREATE INDEX repro_events_cow_idx ON repro_events (cow_id, event_date DESC);
+  `,
 ];

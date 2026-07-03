@@ -14,9 +14,11 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { formatAge, formatLiters, loadCowCard, loadGenealogy } from '@/features/herd/queries';
 import { useLocalQuery } from '@/features/herd/useLocalQuery';
 import { useSync } from '@/features/sync/SyncProvider';
+import { todayIsoDate } from '@/lib/dates';
 import { strings } from '@/lib/i18n/strings';
 import { setLifecycleStatus } from '@/repositories/cows';
-import { colors, fonts, radius, spacing, touchTarget } from '@/lib/theme/tokens';
+import { activeWithdrawalUntil, expectedCalvingDate } from '@/repositories/events';
+import { colors, fonts, radius, spacing, statusColors, touchTarget } from '@/lib/theme/tokens';
 import type { LifecycleStatus } from '@/types/domain';
 
 /**
@@ -34,7 +36,14 @@ export default function CowDetailScreen() {
   const query = useCallback(
     (driver: Parameters<typeof loadCowCard>[0]) => {
       const card = loadCowCard(driver, id);
-      return card ? { card, genealogy: loadGenealogy(driver, card.cow) } : null;
+      return card
+        ? {
+            card,
+            genealogy: loadGenealogy(driver, card.cow),
+            withdrawalUntil: activeWithdrawalUntil(driver, id, todayIsoDate()),
+            expectedCalving: expectedCalvingDate(driver, id),
+          }
+        : null;
     },
     [id],
   );
@@ -78,6 +87,21 @@ export default function CowDetailScreen() {
         <View style={styles.chipsRow}>
           <StatusChips cow={cow} verbose />
         </View>
+
+        {data.withdrawalUntil ? (
+          <View style={styles.withdrawalBanner} accessibilityRole="alert">
+            <Text style={styles.withdrawalText}>
+              ⚠ {strings.health.withdrawalActive}: {data.withdrawalUntil}
+            </Text>
+          </View>
+        ) : null}
+        {data.expectedCalving ? (
+          <View style={styles.calvingBanner} accessibilityRole="text">
+            <Text style={styles.calvingText}>
+              🐄 {strings.repro.expectedCalving}: {data.expectedCalving}
+            </Text>
+          </View>
+        ) : null}
 
         <View style={styles.panel}>
           <Text style={styles.panelTitle}>{strings.herd.production}</Text>
@@ -152,6 +176,23 @@ export default function CowDetailScreen() {
               </Pressable>
             ))
           )}
+        </View>
+
+        <View style={styles.panel}>
+          <View style={styles.actionsRow}>
+            <AppButton
+              title={strings.health.title}
+              variant="secondary"
+              onPress={() => router.push({ pathname: '/cow/[id]/health', params: { id: cow.id } })}
+              style={styles.actionButton}
+            />
+            <AppButton
+              title={strings.repro.title}
+              variant="secondary"
+              onPress={() => router.push({ pathname: '/cow/[id]/repro', params: { id: cow.id } })}
+              style={styles.actionButton}
+            />
+          </View>
         </View>
 
         <AppButton
@@ -235,6 +276,26 @@ const styles = StyleSheet.create({
   },
   chipsRow: {
     marginTop: spacing.xs,
+  },
+  withdrawalBanner: {
+    backgroundColor: statusColors.pregnant.bg,
+    borderRadius: radius.input,
+    padding: spacing.md,
+  },
+  withdrawalText: {
+    fontFamily: fonts.bold,
+    fontSize: 13,
+    color: statusColors.pregnant.fg,
+  },
+  calvingBanner: {
+    backgroundColor: statusColors.lactating.bg,
+    borderRadius: radius.input,
+    padding: spacing.md,
+  },
+  calvingText: {
+    fontFamily: fonts.bold,
+    fontSize: 13,
+    color: statusColors.lactating.fg,
   },
   panel: {
     backgroundColor: colors.surface,
