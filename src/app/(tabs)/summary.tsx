@@ -1,4 +1,5 @@
-import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter, type Href } from 'expo-router';
 import { useCallback } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -10,8 +11,10 @@ import { SyncBadge } from '@/components/SyncBadge';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { formatLiters, loadFarmSummary } from '@/features/herd/queries';
 import { useLocalQuery } from '@/features/herd/useLocalQuery';
+import { computeReminders } from '@/features/reminders/service';
+import { todayIsoDate } from '@/lib/dates';
 import { strings } from '@/lib/i18n/strings';
-import { colors, fonts, radius, spacing } from '@/lib/theme/tokens';
+import { colors, fonts, radius, spacing, touchTarget } from '@/lib/theme/tokens';
 
 /**
  * Screen 12 — farm daily summary: farm total today (dominant), yesterday
@@ -24,10 +27,17 @@ export default function SummaryScreen() {
 
   const query = useCallback(
     (driver: Parameters<typeof loadFarmSummary>[0]) =>
-      activeFarmId ? loadFarmSummary(driver, activeFarmId) : null,
+      activeFarmId
+        ? {
+            summary: loadFarmSummary(driver, activeFarmId),
+            reminderCount: computeReminders(driver, activeFarmId, todayIsoDate()).length,
+          }
+        : null,
     [activeFarmId],
   );
-  const { data } = useLocalQuery(query);
+  const { data: loaded } = useLocalQuery(query);
+  const data = loaded?.summary ?? null;
+  const reminderCount = loaded?.reminderCount ?? 0;
 
   const withRecords = (data?.cards ?? []).filter((c) => c.today > 0);
   const withoutRecords = (data?.cards ?? []).filter((c) => c.today === 0);
@@ -37,7 +47,22 @@ export default function SummaryScreen() {
     <ScreenContainer>
       <View style={styles.header}>
         <Text style={styles.title}>{strings.milk.daySummary}</Text>
-        <SyncBadge />
+        <View style={styles.headerActions}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${strings.reminders.title}: ${reminderCount}`}
+            onPress={() => router.push('/reminders' as Href)}
+            style={styles.bellButton}
+          >
+            <Ionicons name="notifications-outline" size={22} color={colors.textPrimary} />
+            {reminderCount > 0 ? (
+              <View style={styles.bellBadge}>
+                <Text style={styles.bellBadgeText}>{reminderCount}</Text>
+              </View>
+            ) : null}
+          </Pressable>
+          <SyncBadge />
+        </View>
       </View>
 
       <FlatList
@@ -111,6 +136,34 @@ const styles = StyleSheet.create({
     fontFamily: fonts.extraBold,
     fontSize: 22,
     color: colors.textPrimary,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  bellButton: {
+    width: touchTarget.min,
+    height: touchTarget.min,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bellBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.danger,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  bellBadgeText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.onPrimary,
   },
   listContent: {
     paddingHorizontal: spacing.lg,

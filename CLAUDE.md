@@ -80,6 +80,9 @@ At bootstrap, verify the supported Expo SDK in the official documentation. Prefe
 4. Run typecheck, lint, tests, and relevant database checks.
 5. Report changed files, commands run, failures, and remaining risks.
 6. Do not claim success when a command or test was not run.
+7. After every commit, push to the GitHub remote (`git push`). The public
+   repo https://github.com/naranjodavid04/agrovida is the user's backup and
+   portfolio; never leave local commits unpushed at the end of a task.
 
 ## MVP limits
 Implement only authentication, farm membership/invitations, cows, photos, milk records, genealogy, daily totals, offline storage, automatic sync, and the documented screens. Do not implement health, advanced reproduction events, economics, alerts, exports, or analytics beyond the seven-day sparkline required by the UI.

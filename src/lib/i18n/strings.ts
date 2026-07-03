@@ -131,6 +131,15 @@ export const strings = {
     expectedCalving: 'Parto estimado',
     noEvents: 'Sin eventos de reproducción.',
   },
+  reminders: {
+    title: 'Recordatorios',
+    none: 'Sin recordatorios pendientes.',
+    calvingUpcoming: 'Parto estimado',
+    dryingOff: 'Secar (parto estimado {date})',
+    dryingOffTitle: 'Secado recomendado',
+    pregnancyCheckDue: 'Chequeo de preñez pendiente',
+    withdrawalActive: 'Leche en retiro hasta',
+  },
   status: {
     lactating: 'Lactando',
     dry: 'Seca',

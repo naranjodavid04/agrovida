@@ -17,3 +17,9 @@ export const TREND_DAYS = 7;
 
 /** Bovine gestation length used to derive the expected calving date (D-019). */
 export const GESTATION_DAYS = 283;
+
+/** Reminder windows (D-019). All reminders are derived, never stored. */
+export const DRY_OFF_DAYS_BEFORE_CALVING = 60;
+export const CALVING_ALERT_DAYS = 21;
+export const DRY_OFF_ALERT_DAYS = 14;
+export const PREGNANCY_CHECK_DUE_DAYS = 30;

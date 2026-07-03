@@ -1,5 +1,5 @@
 import Constants from 'expo-constants';
-import { Redirect, useRouter } from 'expo-router';
+import { Redirect, useRouter, type Href } from 'expo-router';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/AppButton';
@@ -70,6 +70,12 @@ export default function SettingsScreen() {
             style={styles.button}
           />
         ) : null}
+        <AppButton
+          title={strings.reminders.title}
+          variant="secondary"
+          onPress={() => router.push('/reminders' as Href)}
+          style={styles.button}
+        />
         <AppButton
           title={strings.settings.syncStatus}
           variant="secondary"
