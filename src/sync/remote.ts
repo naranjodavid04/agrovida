@@ -65,12 +65,32 @@ function classifyError(error: PostgrestishError): PushResult {
 export function createSupabaseRemote(client: SupabaseClient): SyncRemote {
   return {
     async upsertEntity(entityType, payload) {
+      const table = TABLE_BY_ENTITY[entityType];
       try {
-        const { error } = await client
-          .from(TABLE_BY_ENTITY[entityType])
-          .upsert(payload, { onConflict: 'id' });
-        if (!error) return { kind: 'ok' };
-        return classifyError(error);
+        // Update-first instead of a Postgres upsert: an upsert must satisfy
+        // the INSERT policy (created_by/recorded_by = auth.uid()) even when
+        // the row already exists, which blocked cross-member edits. A plain
+        // UPDATE only needs the UPDATE policy; the INSERT fallback keeps
+        // attribution enforcement for genuinely new rows.
+        const updated = await client
+          .from(table)
+          .update(payload, { count: 'exact' })
+          .eq('id', String(payload.id));
+        if (updated.error) return classifyError(updated.error);
+        if ((updated.count ?? 0) > 0) return { kind: 'ok' };
+
+        const inserted = await client.from(table).insert(payload);
+        if (!inserted.error) return { kind: 'ok' };
+        // Same-id race (duplicate delivery): the row appeared between the
+        // update and the insert — retry the update once.
+        if (inserted.error.code === '23505') {
+          const retried = await client
+            .from(table)
+            .update(payload, { count: 'exact' })
+            .eq('id', String(payload.id));
+          if (!retried.error && (retried.count ?? 0) > 0) return { kind: 'ok' };
+        }
+        return classifyError(inserted.error);
       } catch (error) {
         return {
           kind: 'transient',

@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/AppButton';
 import { CowPhoto } from '@/components/CowPhoto';
@@ -29,6 +29,7 @@ export default function CowDetailScreen() {
   const router = useRouter();
   const { role } = useAuth();
   const { notifyLocalChange } = useSync();
+  const [showLifecyclePicker, setShowLifecyclePicker] = useState(false);
 
   const query = useCallback(
     (driver: Parameters<typeof loadCowCard>[0]) => {
@@ -49,26 +50,18 @@ export default function CowDetailScreen() {
   const { card, genealogy } = data;
   const cow = card.cow;
 
-  const changeLifecycle = () => {
-    const options: { label: string; value: LifecycleStatus }[] = [
-      { label: strings.status.active, value: 'active' },
-      { label: strings.status.sold, value: 'sold' },
-      { label: strings.status.deceased, value: 'deceased' },
-      { label: strings.status.culled, value: 'culled' },
-    ];
-    Alert.alert(strings.herd.changeLifecycle, cow.name, [
-      ...options
-        .filter((option) => option.value !== cow.lifecycleStatus)
-        .map((option) => ({
-          text: option.label,
-          onPress: () => {
-            setLifecycleStatus(getDatabase(), cow.id, option.value);
-            reload();
-            notifyLocalChange();
-          },
-        })),
-      { text: strings.common.cancel, style: 'cancel' as const },
-    ]);
+  const lifecycleOptions: { label: string; value: LifecycleStatus }[] = [
+    { label: strings.status.active, value: 'active' },
+    { label: strings.status.sold, value: 'sold' },
+    { label: strings.status.deceased, value: 'deceased' },
+    { label: strings.status.culled, value: 'culled' },
+  ];
+
+  const applyLifecycle = (value: LifecycleStatus) => {
+    setShowLifecyclePicker(false);
+    setLifecycleStatus(getDatabase(), cow.id, value);
+    reload();
+    notifyLocalChange();
   };
 
   return (
@@ -172,11 +165,40 @@ export default function CowDetailScreen() {
             <AppButton
               title={strings.herd.changeLifecycle}
               variant="secondary"
-              onPress={changeLifecycle}
+              onPress={() => setShowLifecyclePicker(true)}
             />
           </View>
         ) : null}
       </ScrollView>
+
+      <Modal visible={showLifecyclePicker} animationType="slide" transparent>
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowLifecyclePicker(false)}>
+          <Pressable style={styles.modalSheet} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.modalTitle}>
+              {strings.herd.changeLifecycle} · {cow.name}
+            </Text>
+            {lifecycleOptions
+              .filter((option) => option.value !== cow.lifecycleStatus)
+              .map((option) => (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="button"
+                  accessibilityLabel={option.label}
+                  onPress={() => applyLifecycle(option.value)}
+                  style={({ pressed }) => [styles.modalRow, pressed && styles.pressed]}
+                >
+                  <Text style={styles.modalRowText}>{option.label}</Text>
+                </Pressable>
+              ))}
+            <AppButton
+              title={strings.common.cancel}
+              variant="secondary"
+              onPress={() => setShowLifecyclePicker(false)}
+              style={styles.modalCancel}
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScreenContainer>
   );
 }
@@ -308,5 +330,41 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderSoft,
     padding: spacing.lg,
+  },
+  pressed: {
+    opacity: 0.85,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(22, 33, 28, 0.45)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: colors.appBackground,
+    borderTopLeftRadius: radius.mainCard,
+    borderTopRightRadius: radius.mainCard,
+    padding: spacing.lg,
+    paddingBottom: spacing.xxl,
+  },
+  modalTitle: {
+    fontFamily: fonts.extraBold,
+    fontSize: 18,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+  },
+  modalRow: {
+    minHeight: touchTarget.field,
+    justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSoft,
+    paddingHorizontal: spacing.xs,
+  },
+  modalRowText: {
+    fontFamily: fonts.bold,
+    fontSize: 16,
+    color: colors.textPrimary,
+  },
+  modalCancel: {
+    marginTop: spacing.md,
   },
 });

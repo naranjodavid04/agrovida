@@ -1,3 +1,4 @@
+import { Directory, File, Paths } from 'expo-file-system';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
 import {
@@ -22,9 +23,15 @@ const SIGNED_URL_TTL_SECONDS = 60 * 60;
 
 /**
  * Cow photo with offline-first resolution (D-010): a pending local file wins;
- * otherwise a signed URL for the private bucket is requested (needs network);
- * otherwise a placeholder. Pending uploads keep displaying locally.
+ * otherwise photos from other devices are downloaded once into an app cache
+ * so they keep displaying offline; a placeholder covers the rest.
  */
+
+function cachedFileFor(photoPath: string): File {
+  const dir = new Directory(Paths.cache, 'cow-photos-cache');
+  if (!dir.exists) dir.create({ intermediates: true });
+  return new File(dir, photoPath.replace(/[/\\:]/g, '_'));
+}
 
 interface Props {
   cow: Pick<Cow, 'name' | 'photoLocalUri' | 'photoPath'>;
@@ -33,26 +40,48 @@ interface Props {
 
 export function CowPhoto({ cow, style }: Props) {
   // Keyed by path so a stale URL from a previous cow is never shown.
-  const [signed, setSigned] = useState<{ path: string; url: string } | null>(null);
+  const [resolved, setResolved] = useState<{ path: string; url: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const path = cow.photoPath;
-    if (cow.photoLocalUri || !path || !hasRemoteConfig()) return;
-    getSupabase()
-      .storage.from(BUCKET)
-      .createSignedUrl(path, SIGNED_URL_TTL_SECONDS)
-      .then(({ data, error }) => {
-        if (!cancelled && !error && data) setSigned({ path, url: data.signedUrl });
-        if (error) log.debug('signed url unavailable (offline?)', { message: error.message });
-      })
-      .catch(() => undefined);
+    if (cow.photoLocalUri || !path) return;
+    (async () => {
+      try {
+        const cached = cachedFileFor(path);
+        if (cached.exists) {
+          if (!cancelled) setResolved({ path, url: cached.uri });
+          return;
+        }
+        if (!hasRemoteConfig()) return;
+        const { data, error } = await getSupabase()
+          .storage.from(BUCKET)
+          .createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
+        if (error || !data) {
+          if (error) log.debug('signed url unavailable (offline?)', { message: error.message });
+          return;
+        }
+        try {
+          const downloaded = await File.downloadFileAsync(data.signedUrl, cached);
+          if (!cancelled) setResolved({ path, url: downloaded.uri });
+          log.debug('remote photo cached', { path });
+        } catch {
+          // Cache write failed: stream the signed URL for this session.
+          if (!cancelled) setResolved({ path, url: data.signedUrl });
+        }
+      } catch (error) {
+        log.debug('photo resolution failed', {
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+    })();
     return () => {
       cancelled = true;
     };
   }, [cow.photoLocalUri, cow.photoPath]);
 
-  const uri = cow.photoLocalUri ?? (signed && signed.path === cow.photoPath ? signed.url : null);
+  const uri =
+    cow.photoLocalUri ?? (resolved && resolved.path === cow.photoPath ? resolved.url : null);
 
   if (!uri) {
     return (

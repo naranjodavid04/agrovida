@@ -1,5 +1,5 @@
 import Constants from 'expo-constants';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/AppButton';
@@ -16,8 +16,12 @@ import { colors, fonts, radius, spacing } from '@/lib/theme/tokens';
  */
 export default function SettingsScreen() {
   const router = useRouter();
-  const { user, farms, activeFarmId, role, signOut } = useAuth();
+  const { status, user, farms, activeFarmId, role, signOut } = useAuth();
   const farm = farms.find((f) => f.id === activeFarmId);
+
+  // After a confirmed logout the state flips to signedOut; leave this screen
+  // immediately instead of staying on a stale settings view.
+  if (status === 'signedOut') return <Redirect href="/login" />;
 
   const logout = async () => {
     const result = await signOut();
