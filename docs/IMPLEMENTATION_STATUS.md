@@ -223,3 +223,24 @@ Registro vivo del avance por fases de `IMPLEMENTATION_PROMPT.md`. Cada fase se c
 
 **Pendiente (requiere acción del usuario):**
 - Continuar la prueba en teléfono con Expo Go SDK 56: crear finca (ya corregido), vaca y ordeño; criterio de modo avión y reconexión.
+
+## Post-MVP ola 2 (2026-07-03 → 2026-07-05)
+
+**Funcionalidades entregadas** (todas con el contrato completo: migración+RLS+pgTAP → espejo local → outbox/sync → UI → tests Jest → push a hosted):
+- **Salud** (D-019): eventos con retiro de leche por medicamento; advertencia en perfil y formulario.
+- **Reproducción** (D-019): celo/inseminación/chequeo/parto/aborto; parto estimado derivado (+283 días).
+- **Recordatorios derivados**: retiro activo, secado (-60d del parto), parto próximo (21d), chequeo pendiente (30d); campanita con contador en Resumen.
+- **Exportación CSV** (dialecto Excel es-CO: `;`, decimales con coma, BOM): rebaño, leche, salud, reproducción, ventas.
+- **Ventas de leche** (ROADMAP H1): litros, precio, calidad opcional; liquidación mensual derivada (litros×precio) en COP.
+
+**Fixes de campo** (reportados por el usuario en pruebas reales):
+- Push upsert→update-first: las políticas INSERT de Postgres bloqueaban ediciones cruzadas entre miembros (confirmado E2E: upsert 403 / update 204).
+- Cambiar de finca (redirect prematuro), logout→login, selector de lifecycle con Cancelar (Android descarta >3 botones de Alert), caché offline de fotos remotas, pipeline de fotos endurecido (permisos, fallback, File.bytes()).
+
+**Infraestructura**:
+- Repo público en GitHub (naranjodavid04/agrovida) con push tras cada commit (regla en CLAUDE.md), README de dos caras + ROADMAP.md.
+- EAS configurado (perfiles preview APK / production AAB, env vars en EAS, keystore en la nube). **APK v0.1 instalado y funcionando en el teléfono del usuario**; build v0.2.0 con ventas en curso.
+
+**Validación acumulada:** 99 tests Jest (21 suites) · 48 aserciones pgTAP (5 suites) · tsc/eslint/prettier limpios · bundle Hermes compila.
+
+**Siguiente:** confirmar APK v0.2.0, luego retomar Play Store (cuenta Google Play Developer, perfil production) y siguientes ítems del ROADMAP (costos/margen, notificaciones del sistema con el dev build).
