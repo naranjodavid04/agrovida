@@ -92,6 +92,20 @@ export interface ReproEvent {
   deletedAt: string | null;
 }
 
+export interface MilkSale {
+  id: string;
+  farmId: string;
+  saleDate: string;
+  liters: number;
+  pricePerLiter: number;
+  fatPercent: number | null;
+  proteinPercent: number | null;
+  notes: string | null;
+  recordedBy: string;
+  createdAt: string;
+  deletedAt: string | null;
+}
+
 export interface MilkRecord {
   id: string;
   farmId: string;

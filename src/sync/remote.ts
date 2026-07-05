@@ -16,14 +16,21 @@ export type PushResult =
 
 export interface PullRow {
   entity_type:
-    'farm' | 'farm_member' | 'farm_invite' | 'cow' | 'milk_record' | 'health_event' | 'repro_event';
+    | 'farm'
+    | 'farm_member'
+    | 'farm_invite'
+    | 'cow'
+    | 'milk_record'
+    | 'health_event'
+    | 'repro_event'
+    | 'milk_sale';
   entity_id: string;
   server_version: number;
   deleted_at: string | null;
   row_data: Record<string, unknown>;
 }
 
-export type PushEntityType = 'cow' | 'milk_record' | 'health_event' | 'repro_event';
+export type PushEntityType = 'cow' | 'milk_record' | 'health_event' | 'repro_event' | 'milk_sale';
 
 export interface SyncRemote {
   upsertEntity(entityType: PushEntityType, payload: Record<string, unknown>): Promise<PushResult>;
@@ -42,6 +49,7 @@ const TABLE_BY_ENTITY = {
   milk_record: 'milk_records',
   health_event: 'health_events',
   repro_event: 'repro_events',
+  milk_sale: 'milk_sales',
 } as const;
 
 interface PostgrestishError {

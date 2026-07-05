@@ -89,6 +89,15 @@ export default function SummaryScreen() {
                 />
               </View>
             </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={strings.sales.title}
+              onPress={() => router.push('/sales' as Href)}
+              style={({ pressed }) => [styles.salesLink, pressed && styles.pressed]}
+            >
+              <Text style={styles.salesLinkText}>💰 {strings.sales.title}</Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+            </Pressable>
             {withRecords.length > 0 ? (
               <Text style={styles.sectionTitle}>{strings.milk.cowsWithRecords}</Text>
             ) : (
@@ -215,6 +224,23 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.textPrimary,
     marginBottom: spacing.sm,
+  },
+  salesLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: touchTarget.field,
+    backgroundColor: colors.surface,
+    borderRadius: radius.listRow,
+    borderWidth: 1,
+    borderColor: colors.borderSoft,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  salesLinkText: {
+    fontFamily: fonts.bold,
+    fontSize: 15,
+    color: colors.textPrimary,
   },
   row: {
     flexDirection: 'row',

@@ -184,4 +184,24 @@ export const LOCAL_MIGRATIONS: readonly string[] = [
   );
   CREATE INDEX repro_events_cow_idx ON repro_events (cow_id, event_date DESC);
   `,
+
+  // v3 — milk sales/settlements (ROADMAP H1)
+  `
+  CREATE TABLE milk_sales (
+    id TEXT PRIMARY KEY,
+    farm_id TEXT NOT NULL,
+    sale_date TEXT NOT NULL,
+    liters REAL NOT NULL CHECK (liters > 0),
+    price_per_liter REAL NOT NULL CHECK (price_per_liter >= 0),
+    fat_percent REAL,
+    protein_percent REAL,
+    notes TEXT,
+    recorded_by TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    deleted_at TEXT,
+    server_version INTEGER NOT NULL DEFAULT 0,
+    local_updated_at TEXT NOT NULL
+  );
+  CREATE INDEX milk_sales_farm_date_idx ON milk_sales (farm_id, sale_date DESC);
+  `,
 ];

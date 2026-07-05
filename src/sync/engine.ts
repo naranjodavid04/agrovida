@@ -6,6 +6,7 @@ import { applyRemoteCow } from '@/repositories/cows';
 import { applyRemoteHealthEvent, applyRemoteReproEvent } from '@/repositories/events';
 import { applyRemoteFarm, applyRemoteInvite, applyRemoteMember } from '@/repositories/farms';
 import { applyRemoteMilkRecord } from '@/repositories/milk';
+import { applyRemoteMilkSale } from '@/repositories/sales';
 
 import { nextAttemptIso } from './backoff';
 import {
@@ -268,6 +269,9 @@ function applyPulledRow(driver: SqlDriver, row: PullRow): void {
       break;
     case 'repro_event':
       applyRemoteReproEvent(driver, row.row_data);
+      break;
+    case 'milk_sale':
+      applyRemoteMilkSale(driver, row.row_data);
       break;
   }
 }

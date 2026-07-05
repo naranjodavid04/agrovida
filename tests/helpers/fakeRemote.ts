@@ -16,6 +16,7 @@ export class FakeRemoteServer implements SyncRemote {
     milk_record: new Map(),
     health_event: new Map(),
     repro_event: new Map(),
+    milk_sale: new Map(),
   };
   /** Upsert log to assert idempotency/duplicate delivery. */
   readonly upsertLog: string[] = [];
@@ -103,6 +104,7 @@ export class FakeRemoteServer implements SyncRemote {
     collect('milk_record', this.tables.milk_record);
     collect('health_event', this.tables.health_event);
     collect('repro_event', this.tables.repro_event);
+    collect('milk_sale', this.tables.milk_sale);
     rows.sort((a, b) => a.server_version - b.server_version);
     return rows.slice(0, limit);
   }

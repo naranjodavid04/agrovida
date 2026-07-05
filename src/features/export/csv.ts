@@ -212,11 +212,41 @@ export function buildReproCsv(driver: SqlDriver, farmId: string): string {
   );
 }
 
-export type ExportKind = 'cows' | 'milk' | 'health' | 'repro';
+export function buildSalesCsv(driver: SqlDriver, farmId: string): string {
+  const rows = driver.all<{
+    sale_date: string;
+    liters: number;
+    price_per_liter: number;
+    fat_percent: number | null;
+    protein_percent: number | null;
+    notes: string | null;
+  }>(
+    `SELECT sale_date, liters, price_per_liter, fat_percent, protein_percent, notes
+     FROM milk_sales
+     WHERE farm_id = ? AND deleted_at IS NULL
+     ORDER BY sale_date DESC`,
+    [farmId],
+  );
+  return buildCsv(
+    [strings.milk.date, 'Litros', 'Precio por litro', 'Total', 'Grasa %', 'Proteína %', 'Notas'],
+    rows.map((row) => [
+      row.sale_date,
+      formatDecimal(row.liters),
+      formatDecimal(row.price_per_liter),
+      formatDecimal(row.liters * row.price_per_liter),
+      row.fat_percent === null ? null : formatDecimal(row.fat_percent),
+      row.protein_percent === null ? null : formatDecimal(row.protein_percent),
+      row.notes,
+    ]),
+  );
+}
+
+export type ExportKind = 'cows' | 'milk' | 'health' | 'repro' | 'sales';
 
 export const EXPORT_BUILDERS: Record<ExportKind, (driver: SqlDriver, farmId: string) => string> = {
   cows: buildCowsCsv,
   milk: buildMilkCsv,
   health: buildHealthCsv,
   repro: buildReproCsv,
+  sales: buildSalesCsv,
 };

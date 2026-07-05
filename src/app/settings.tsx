@@ -19,6 +19,7 @@ const EXPORT_OPTIONS: { kind: ExportKind; label: string }[] = [
   { kind: 'milk', label: strings.export.milk },
   { kind: 'health', label: strings.export.health },
   { kind: 'repro', label: strings.export.repro },
+  { kind: 'sales', label: strings.export.sales },
 ];
 
 /**

@@ -10,7 +10,7 @@ import { nowIso } from '@/lib/clock';
  * idempotent upserts keyed by client-generated UUIDs.
  */
 
-export type EntityType = 'cow' | 'milk_record' | 'health_event' | 'repro_event';
+export type EntityType = 'cow' | 'milk_record' | 'health_event' | 'repro_event' | 'milk_sale';
 export type OutboxOperation = 'upsert';
 
 export interface OutboxEntry {

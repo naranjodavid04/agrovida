@@ -14,6 +14,7 @@ const KIND_SLUG: Record<ExportKind, string> = {
   milk: 'leche',
   health: 'salud',
   repro: 'reproduccion',
+  sales: 'ventas',
 };
 
 /**
