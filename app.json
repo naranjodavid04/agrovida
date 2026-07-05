@@ -17,6 +17,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
+        "android.permission.RECORD_AUDIO",
         "android.permission.RECORD_AUDIO"
       ]
     },
@@ -55,6 +56,13 @@
         "projectId": "273c40f9-d09d-481b-95e0-bcf2adcaec18"
       }
     },
-    "owner": "naranjodavid04"
+    "owner": "naranjodavid04",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/273c40f9-d09d-481b-95e0-bcf2adcaec18"
+    },
+    "ios": {}
   }
 }
