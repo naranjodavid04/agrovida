@@ -131,6 +131,14 @@ export const strings = {
     expectedCalving: 'Parto estimado',
     noEvents: 'Sin eventos de reproducción.',
   },
+  export: {
+    title: 'Exportar datos (CSV)',
+    cows: 'Rebaño (inventario)',
+    milk: 'Producción de leche',
+    health: 'Eventos de salud',
+    repro: 'Eventos de reproducción',
+    failed: 'No se pudo exportar el archivo.',
+  },
   reminders: {
     title: 'Recordatorios',
     none: 'Sin recordatorios pendientes.',
